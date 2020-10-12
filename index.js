@@ -62,8 +62,9 @@ client.command("topmememonth", async ctx => {
 
 client.command("topmemeyear", async ctx => {
     getMemes("top", "year")
-    .then(url => {
-        ctx.replyWithPhoto(url);
+    .then(URL => {
+        ctx.replyWithPhoto({url: URL}, {caption: "BIBBA"});
+        
     });
 });
 
