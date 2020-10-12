@@ -25,8 +25,10 @@ getPosts = (subreddit, type, time) =>{
 
             if(response.error == 404)
                 return;
+            
+            const data = response.data.children[random.int(0, response.data.children.length - 1)].data;
 
-            return resolve(response.data.children[random.int(0, response.data.children.length - 1)].data);
+            return resolve(data);
         });
     });
 }
@@ -34,15 +36,6 @@ getPosts = (subreddit, type, time) =>{
 reply = (ctx, data) => {
     ctx.replyWithPhoto({url: data.url}, {caption: `${data.title}\n\nPosted by u/${data.author} in r/${data.subreddit}\n\n⬆️ Upvotes: ${data.ups}\n💬 Comments: ${data.num_comments}`});   
 }
-
-// Commands
-// Hot meme
-client.command("hotmeme", async ctx => {
-    getPosts("hot")
-    .then(data => {
-        reply(ctx, data);
-    });
-});
 
 client.on("text", async ctx => {
     const content = ctx.update.message.text;
@@ -52,62 +45,51 @@ client.on("text", async ctx => {
 
     const args = parts.slice(1);
  // /subreddit memes hot
-    if(command == "subreddit") {
-        const subreddit = args[0];
+    switch(command) {
+        case "subreddit":
+            const subreddit = args[0];
 
-        if(!subreddit)
-            return;
-        
-        let category = args[1];
-        let time = args[2];
-
-        if(!category)
-            category = "hot";
+            if(!subreddit)
+                return;
             
-        if(!time && category != "hot")
-            time = "all";
+            let category = args[1];
+            let time = args[2];
 
-        getPosts(subreddit, category, time)
-        .then(data => {
-            reply(ctx, data);
-        });
+            if(!category)
+                category = "hot";
+                
+            if(!time && category != "hot")
+                time = "all";
+      
+            getPosts(subreddit, category, time)
+            .then(data => {
+                reply(ctx, data);
+            });
+            break;
+
+        case "meme":
+            const meme_subreddits = [
+                "memes", "dankmemes"
+            ];
+
+            const rand = random.int(0, meme_subreddits.length - 1);
+
+            let meme_subreddit = meme_subreddits[rand];
+            let meme_category = args[0];
+            let meme_time = args[1];
+
+            if(!meme_category)
+                meme_category = "hot";
+            
+            if(!meme_time && meme_category != "hot")
+                meme_time = "all";
+    
+            getPosts(meme_subreddit, meme_category, meme_time)
+            .then(data => {
+                reply(ctx, data);
+            });
+            break;
     }
-});
-
-// Top memes
-client.command("topmemeday", async ctx => {
-    getPosts("memes", "top", "day")
-    .then(data => {
-        reply(ctx, data);
-    });
-});
-
-client.command("topmemeweek", async ctx => {
-    getPosts("memes", "top", "week")
-    .then(data => {
-        reply(ctx, data);
-    });
-});
-
-client.command("topmememonth", async ctx => {
-    getPosts("memes", "top", "month")
-    .then(data => {
-        reply(ctx, data);
-    });
-});
-
-client.command("topmemeyear", async ctx => {
-    getPosts("memes", "top", "year")
-    .then(data => {
-        reply(ctx, data);
-    });
-});
-
-client.command("topmemeall", async ctx => {
-    getPosts("memes", "top", "all")
-    .then(data => {
-        reply(ctx, data);
-    });
 });
 
 client.launch();
