@@ -41,8 +41,11 @@ client.on("text", async ctx => {
     const content = ctx.update.message.text;
 
     const parts = content.split(" ");
-    const command = parts[0].substr(1, parts[0].length - 1);
+    let command = parts[0].substr(1, parts[0].length - 1);
 
+    if(command.endsWith("@joycasinomemesbot"))
+        command = command.substr(0, command.indexOf("@joycasinomemesbot"));
+        
     const args = parts.slice(1);
  // /subreddit memes hot
     switch(command) {
