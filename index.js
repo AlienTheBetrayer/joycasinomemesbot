@@ -45,7 +45,7 @@ client.on("text", async ctx => {
 
     if(command.endsWith("@joycasinomemesbot"))
         command = command.substr(0, command.indexOf("@joycasinomemesbot"));
-        
+
     const args = parts.slice(1);
  // /subreddit memes hot
     switch(command) {
@@ -95,4 +95,7 @@ client.on("text", async ctx => {
     }
 });
 
-client.launch();
+client.launch()
+.then(() => {
+    console.log("JoyCasino client is online");
+});
