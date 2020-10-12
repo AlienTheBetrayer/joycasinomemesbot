@@ -10,10 +10,10 @@ const config = require("./config.json");
 const client = new Telegraf(config.token);
 
 // Helper functions
-getMemes = (type, time) =>{
+getPosts = (subreddit, type, time) =>{
     return new Promise((resolve, reject) => {
-        let url = `https://api.reddit.com/r/memes/top.json?sort=${type}`;
-
+        let url = `https://api.reddit.com/r/${subreddit}/top.json?sort=${type}`;
+        
         if(time)
             url += `&t=${time}`;
         
@@ -22,56 +22,91 @@ getMemes = (type, time) =>{
         fetch(url)
         .then(async r => {
             const response = await r.json();
-            const imageURL = response.data.children[random.int(0, response.data.children.length - 1)].data.url;
 
-            return resolve(imageURL);
+            if(response.error == 404)
+                return;
+
+            return resolve(response.data.children[random.int(0, response.data.children.length - 1)].data);
         });
     });
+}
+
+reply = (ctx, data) => {
+    ctx.replyWithPhoto({url: data.url}, {caption: `${data.title}\n\nPosted by u/${data.author} in r/${data.subreddit}\n\n⬆️ Upvotes: ${data.ups}\n💬 Comments: ${data.num_comments}`});   
 }
 
 // Commands
 // Hot meme
 client.command("hotmeme", async ctx => {
-    getMemes("hot")
-    .then(url => {
-        ctx.replyWithPhoto(url);
+    getPosts("hot")
+    .then(data => {
+        reply(ctx, data);
     });
+});
+
+client.on("text", async ctx => {
+    const content = ctx.update.message.text;
+
+    const parts = content.split(" ");
+    const command = parts[0].substr(1, parts[0].length - 1);
+
+    const args = parts.slice(1);
+ // /subreddit memes hot
+    if(command == "subreddit") {
+        const subreddit = args[0];
+
+        if(!subreddit)
+            return;
+        
+        let category = args[1];
+        let time = args[2];
+
+        if(!category)
+            category = "hot";
+            
+        if(!time && category != "hot")
+            time = "all";
+
+        getPosts(subreddit, category, time)
+        .then(data => {
+            reply(ctx, data);
+        });
+    }
 });
 
 // Top memes
 client.command("topmemeday", async ctx => {
-    getMemes("top", "day")
-    .then(url => {
-        ctx.replyWithPhoto(url);
+    getPosts("memes", "top", "day")
+    .then(data => {
+        reply(ctx, data);
     });
 });
 
 client.command("topmemeweek", async ctx => {
-    getMemes("top", "week")
-    .then(url => {
-        ctx.replyWithPhoto(url);
+    getPosts("memes", "top", "week")
+    .then(data => {
+        reply(ctx, data);
     });
 });
 
 client.command("topmememonth", async ctx => {
-    getMemes("top", "month")
-    .then(url => {
-        ctx.replyWithPhoto(url);
+    getPosts("memes", "top", "month")
+    .then(data => {
+        reply(ctx, data);
     });
 });
 
 client.command("topmemeyear", async ctx => {
-    getMemes("top", "year")
-    .then(URL => {
-        ctx.replyWithPhoto({url: URL}, {caption: "BIBBA"});
-        
+    getPosts("memes", "top", "year")
+    .then(data => {
+        reply(ctx, data);
     });
 });
 
 client.command("topmemeall", async ctx => {
-    getMemes("top", "all")
-    .then(url => {
-        ctx.replyWithPhoto(url);
+    getPosts("memes", "top", "all")
+    .then(data => {
+        reply(ctx, data);
     });
 });
 
